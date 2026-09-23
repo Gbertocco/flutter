@@ -4,91 +4,180 @@ import 'package:flutter/material.dart';
 
 
 
-          class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
-
-         class _HomeScreenState extends State<HomeScreen> {
-            final TextEditingController _nomeController = TextEditingController();
-  final TextEditingController _descricaoController = TextEditingController();
-         final TextEditingController _categoriaController = TextEditingController();
-          final TextEditingController _valorController = TextEditingController();
-
-  void _cadastrarProduto() async {
-    final produto = EstoqueModel(
-      nome: _nomeController.text,
-      descricao: _descricaoController.text,
-      categoria: _categoriaController.text,
-      valor: double.parse(_valorController.text),
-    );
-                     await EstoqueBanco().inserirEstoque(produto);
-
-    _nomeController.clear();
-    _descricaoController.clear();
-    _categoriaController.clear();
-    _valorController.clear();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Produto cadastrado com sucesso!"),
-      ),
-    );
+class _HomeScreenState extends State<HomeScreen> {
+  List<EstoqueModel> _produtos = [];
+  @override
+  void initState() {
+    super.initState();
+    _carregarProdutos();
   }
+  void _carregarProdutos() async {
+    final produtos = await EstoqueBanco()
+        .listarEstoque();
+    setState(() {
+      _produtos = produtos;
+    });
+  }
+  void abrirFormulario() {
+    final nomeController = TextEditingController();
+    final descricaoController = TextEditingController();
+    final categoriaController = TextEditingController();
+    final valorController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(
+            "Cadastro de Produto"
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nomeController,
+                decoration: InputDecoration(
+                  labelText: "Nome"
+                ),
+              ),
+              TextField(
+                controller: descricaoController,
+                decoration: InputDecoration(
+                  labelText: "Descrição"
+                ),
+              ),
+              TextField(
+                controller: categoriaController,
+                decoration: InputDecoration(
+                  labelText: "Categoria"
+                ),
+              ),
+              TextField(
+                controller: valorController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: "Valor"
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                "Cancelar"
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                final produto = EstoqueModel(
+                  nome: nomeController.text,
+                  descricao: descricaoController.text,
+                  categoria: categoriaController.text,
+                  valor: double.parse(
+                    valorController.text
+                  ),
+                );
+                await EstoqueBanco()
+                    .inserirEstoque(produto);
+                Navigator.pop(context);
+                _carregarProdutos();
+                ScaffoldMessenger.of(context)
+                .showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      "Produto cadastrado com sucesso!"
+                    ),
+                  ),
+                );
+              },
+              child: Text(
+                "Salvar"
+              ),
 
-                 @override
+            )
+          ],
+
+
+        );
+
+      },
+
+    );
+
+  }
+  @override
   Widget build(BuildContext context) {
+
     return Scaffold(
+
       appBar: AppBar(
-        title: const Text("Cadastro de Produto"),
+
+        title: Text(
+          "Estoque"
+        ),
+
+        backgroundColor: Colors.deepPurple,
+
       ),
 
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(
-              controller: _nomeController,
-              decoration: const InputDecoration(
-                labelText: "Nome",
+      body: ListView.builder(
+        itemCount: _produtos.length,
+
+        itemBuilder: (context,index) {
+          final produto = _produtos[index];
+          return Card(
+            margin: EdgeInsets.all(10),
+            child: ListTile(
+              leading: CircleAvatar(
+                child: Icon(
+                  Icons.inventory
+                ),
+
+              ),
+
+              title: Text(
+                produto.nome
+              ),
+
+              subtitle: Text(
+
+                "${produto.categoria}\n"
+                "${produto.descricao}\n"
+                "R\$ ${produto.valor.toStringAsFixed(2)}"
+
               ),
             ),
 
-            TextField(
-              controller: _descricaoController,
-              decoration: const InputDecoration(
-                labelText: "Descrição",
-              ),
-            ),
 
-            TextField(
-              controller: _categoriaController,
-              decoration: const InputDecoration(
-                labelText: "Categoria",
-              ),
-            ),
+          );
 
-            TextField(
-              controller: _valorController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              decoration: const InputDecoration(
-                labelText: "Valor",
-              ),
-            ),
+        },
 
-            const SizedBox(height: 20),
 
-            ElevatedButton(
-              onPressed: _cadastrarProduto,
-              child: const Text("Cadastrar Produto"),
-            ),
-          ],
+      ),
+
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          abrirFormulario();
+        },
+
+
+        child: Icon(
+          Icons.add
         ),
       ),
+
     );
+
   }
+
+
+
 }
