@@ -1,11 +1,11 @@
-class ContatoModel {
+class EstoqueModel {
   int? id;
   final String nome;
   final String descricao;
   final String categoria;
   final double valor;
   
-  ContatoModel({
+  EstoqueModel({
     required this.nome,
     required this.descricao,
     required this.categoria,
@@ -13,8 +13,8 @@ class ContatoModel {
     this.id
   });
 
-  factory ContatoModel.fromJson(Map json) {
-    return ContatoModel(
+  factory EstoqueModel.fromJson(Map json) {
+    return EstoqueModel(
       id: json['id'],
       nome: json['nome'], 
       descricao: json['email'], 
